@@ -24,6 +24,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --no-install-su
 
 # Copy setup script and make it executable
 COPY tools/setup.sh /usr/local/bin/setup.sh
+
 RUN chmod +x /usr/local/bin/setup.sh && /usr/local/bin/setup.sh && rm /usr/local/bin/setup.sh
 
 # Copy nginx config

@@ -8,7 +8,9 @@ echo "[SETUP] Generating self-signed SSL certificate ..."
 openssl req -newkey rsa:4096 -x509 -sha256 -days 365 -nodes \
     -out $CERTIFICATE \
     -keyout $KEY \
-    -subj "/C=$COUNTRY/ST=$STATE/L=$LOCALITY/O=$ORGANIZATION/OU=$UNIT/CN=$COMMON_NAME"
+    -subj "/C=$COUNTRY/ST=$STATE/L=$LOCALITY/O=$ORGANIZATION/OU=$UNIT/CN=$COMMON_NAME"\
+    -addext "subjectAltName = DNS:abbouram.42.fr,DNS:localhost"
+
 
 echo "[SETUP] Setting permissions ..."
 chmod 600 $KEY

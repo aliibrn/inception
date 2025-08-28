@@ -1,0 +1,36 @@
+FROM debian:bookworm
+
+# Avoid interactive prompts during apt installs
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Build arguments for certificate generation
+ARG CERT_FOLDER=/etc/nginx/certs
+ARG CERTIFICATE=${CERT_FOLDER}/server.crt
+ARG KEY=${CERT_FOLDER}/server.key
+ARG COUNTRY=MA
+ARG STATE=Casablanca
+ARG LOCALITY=Casablanca
+ARG ORGANIZATION=42Network
+ARG UNIT=Student
+ARG COMMON_NAME=oettaqui.42.fr
+
+# Install nginx + openssl
+RUN apt-get update && apt-get install -y --no-install-recommends --no-install-suggests \
+    nginx \
+    openssl \
+    ca-certificates \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy setup script and make it executable
+COPY tools/setup.sh /usr/local/bin/setup.sh
+RUN chmod +x /usr/local/bin/setup.sh && /usr/local/bin/setup.sh && rm /usr/local/bin/setup.sh
+
+# Copy nginx config
+COPY conf/default.conf /etc/nginx/conf.d/default.conf
+
+# Expose HTTPS
+EXPOSE 443
+
+# Run nginx in foreground (best practice in Docker)
+CMD ["nginx", "-g", "daemon off;"]

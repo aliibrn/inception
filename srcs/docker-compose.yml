@@ -2,35 +2,46 @@ services:
   mariadb:
     build: ./requirements/mariadb
     container_name: mariadb
-    restart: always
+    restart: on-failure
     environment:
-      - MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
-      - MYSQL_DATABASE: $MYSQL_DATABASE
-      - MYSQL_USER: $MYSQL_USER
-      - MYSQL_PASSWORD: $MYSQL_PASSWORD
+      DB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - /home/abbouram/data/db:/var/lib/mysql
+      - wp_db_data:/var/lib/mysql
     networks:
       - wp_network
   wordpress:
     build: ./requirements/wordpress
     container_name: wordpress
-    restart: always
+    restart: on-failure
     environment:
-      - WORDPRESS_DB_HOST: $WORDPRESS_DB_HOST
-      - WORDPRESS_DB_USER: $WORDPRESS_DB_USER
-      - WORDPRESS_DB_PASSWORD: $WORDPRESS_DB_PASSWORD
-      - WORDPRESS_DB_NAME: $WORDPRESS_DB_NAME
+      WORDPRESS_DB_HOST: ${WORDPRESS_DB_HOST}
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
     volumes:
-      - /home/abbouram/data/wp:/var/www/html
+      - wp_site_data:/var/www/html
   nginx:
-    build: ./requirements/nginx/
-    restart: always
+    build: 
+      context: ./requirements/nginx/
+      args:
+        CERT_FOLDER: ${CERT_FOLDER}
+        CERTIFICATE: ${CERTIFICATE}
+        KEY: ${KEY}
+        COUNTRY: ${COUNTRY}
+        STATE: ${STATE}
+        LOCALITY: ${LOCALITY}
+        ORGANIZATION: ${ORGANIZATION}
+        UNIT: ${UNIT}
+        COMMON_NAME: ${COMMON_NAME}
     container_name: nginx
+    restart: on-failure
     ports:
       - "443:433"
     volumes:
-      - /home/abbouram/data/wp:/var/www/html
+      - wp_site_data:/var/www/html
     depends_on:
       - wordpress
     networks:
@@ -38,3 +49,17 @@ services:
 
 networks:
   wp_network:
+
+volumes:
+  wp_db_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/abbouram/data/wp_db_data
+      o: bind
+  wp_site_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/abbouram/data/wp_site_data
+      o: bind

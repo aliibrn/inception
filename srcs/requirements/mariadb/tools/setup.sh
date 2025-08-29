@@ -1,5 +1,5 @@
 #!/bin/bash
-
+echo $DB_DATABASE
 set -e
 
 mariadb -v -u root << EOF

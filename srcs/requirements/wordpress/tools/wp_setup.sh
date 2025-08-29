@@ -1,5 +1,7 @@
 #!/bin/bash
 
+
+#dire nc o tsenaa maria db ta tkone up 
 chown -R www-data:www-data /var/www/html/
 
 if [ ! -f "/var/www/html/wp-config.php" ]; then   mv /tmp/wp-config.php /var/www/html/

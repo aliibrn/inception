@@ -1,50 +1,45 @@
 services:
+  # -- -- -- -- MARIADB -- -- -- --
   mariadb:
     build: ./requirements/mariadb
     container_name: mariadb
-    restart: on-failure
-    environment:
+    restart: unless-stopped
+    env_file:
       - .env
     volumes:
       - wp_db_data:/var/lib/mysql
     networks:
       - wp_network
+  # # -- -- -- -- WORDPRESS -- -- -- --
   wordpress:
     build: ./requirements/wordpress
     container_name: wordpress
-    restart: on-failure
-    environment:
-      WORDPRESS_DB_HOST: ${WORDPRESS_DB_HOST}
-      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
-      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
-      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
+    restart: unless-stopped
+    env_file:
+      - .env
     volumes:
       - wp_site_data:/var/www/html
-  nginx:
-    build: 
-      context: ./requirements/nginx/
-      args:
-        CERT_FOLDER: ${CERT_FOLDER}
-        CERTIFICATE: ${CERTIFICATE}
-        KEY: ${KEY}
-        COUNTRY: ${COUNTRY}
-        STATE: ${STATE}
-        LOCALITY: ${LOCALITY}
-        ORGANIZATION: ${ORGANIZATION}
-        UNIT: ${UNIT}
-        COMMON_NAME: ${COMMON_NAME}
-    container_name: nginx
-    restart: on-failure
-    ports:
-      - "443:433"
-    volumes:
-      - wp_site_data:/var/www/html
+    depends_on:
+      - mariadb
     networks:
       - wp_network
-
+  # -- -- -- -- NGINX -- -- -- --
+  nginx:
+    build: ./requirements/nginx/
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "443:443"
+    volumes:
+      - wp_site_data:/var/www/html:ro
+    depends_on:
+      - wordpress
+    networks:
+      - wp_network
+  # -- -- -- -- NETWORKS -- -- -- --
 networks:
   wp_network:
-
+  # -- -- -- -- VOLUMES -- -- -- --
 volumes:
   wp_db_data:
     driver: local

@@ -1,33 +1,77 @@
 #!/bin/bash
+set -e
+
+echo "Starting WordPress setup..."
+echo "Waiting for MariaDB to be ready..."
+
+# wait until MariaDB is ready
 
 
-#dire nc o tsenaa maria db ta tkone up 
-chown -R www-data:www-data /var/www/html/
+until nc -vz "$WORDPRESS_DB_HOST" 3306; do
+  sleep 1
+done
 
-if [ ! -f "/var/www/html/wp-config.php" ]; then   mv /tmp/wp-config.php /var/www/html/
+echo "MariaDB is ready!"
+
+# move to the web root
+cd /var/www/html
+
+# check if WP is already installed
+if [ ! -f wp-config.php ]; then
+    echo "WordPress not found. Installing..."
+
+    # download WP core files
+    wp core download --allow-root
+    
+    # create config with custom DB settings
+    wp config create --allow-root \
+        --dbname=${DB_DATABASE} \
+        --dbuser=${DB_USER} \
+        --dbpass=${DB_PASSWORD} \
+        --dbhost=${WORDPRESS_DB_HOST} \
+        --skip-check
+    
+    # install WP with custom settings
+    # admin user
+    wp core install --allow-root \
+        --url=${URL} \
+        --title="${TITLE}" \
+        --admin_user=${WP_ADMIN_USER} \
+        --admin_password=${WP_ADMIN_PASSWORD} \
+        --admin_email=${WP_ADMIN_EMAIL} \
+        --skip-email
+    
+    # create a secondary user with editor role
+    wp user create ${WP_USER} ${WP_USER_EMAIL} \
+        --user_pass=${WP_USER_PASSWORD} \
+        --role=editor \
+        --allow-root
+    
+    # delete default plugins and themes
+    wp plugin delete akismet hello --allow-root
+
+    # BONUS: Install and configure Redis cache
+    # echo "Installing and configuring Redis cache..."
+    # wp plugin install redis-cache --activate --allow-root
+    
+    # # set Redis configuration in wp-config.php
+    # wp config set WP_REDIS_HOST redis --allow-root
+    # wp config set WP_REDIS_PORT 6379 --raw --allow-root
+    # wp config set WP_CACHE true --raw --allow-root
+    
+    # # enable Redis object cache
+    # wp redis enable --allow-root
+    # echo "Redis cache configured and enabled!"
+
+    # set the correct ownership and permissions
+    chown -R www-data:www-data /var/www/html
+
+    echo "WordPress installed and configured successfully!"
+    
+else
+    echo "WordPress already installed, skipping setup..."
 fi
 
-sleep 10
+echo "Starting PHP-FPM..."
 
-wp --allow-root --path="/var/www/html/" core download || true
-
-if ! wp --allow-root --path="/var/www/html/" core is-installed;
-then    
-        wp  --allow-root --path="/var/www/html/" core install \
-        --url=$WP_URL \        
-        --title=$WP_TITLE \        
-        --admin_user=$WP_ADMIN_USER \        
-        --admin_password=$WP_ADMIN_PASSWORD \        
-        --admin_email=$WP_ADMIN_EMAILfi;
-
-if ! wp --allow-root --path="/var/www/html/" user get $WP_USER;
-then    
-     wp  --allow-root --path="/var/www/html/" user create \
-        $WP_USER \        
-        $WP_USER_EMAIL \        
-        --user_pass=$WP_USER_PASSWORD \        
-        --role=$WP_ROLEfi;
-
-wp --allow-root --path="/var/www/html/" theme install kubio --activate
-
-exec $@
+exec "$@"

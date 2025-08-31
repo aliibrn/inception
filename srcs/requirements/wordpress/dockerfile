@@ -1,35 +1,22 @@
 FROM debian:bookworm
 
+# php-gd php-redis
 EXPOSE 9000
 
-RUN apt update && \
-    apt install -y --no-install-recommends --no-install-suggests \
-    ca-certificates php-fpm php-mysql wget tar && \
+RUN apt-get update && \
+    apt-get install -y \
+    php-fpm php-mysql \
+    netcat-openbsd \
+    curl && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+RUN curl -sSLo /usr/local/bin/wp https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
+    && chmod +x /usr/local/bin/wp
 
-RUN service php8.2-fpm stop
+COPY conf/www.conf /etc/php/8.2/fpm/pool.d/www.conf
+COPY --chmod=755 tools/wp_setup.sh /usr/local/bin/wp_setup.sh
 
-COPY conf/www.conf /etc/php/8.2/fpm/pool.d/
 
-RUN sed -i 's/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/g' /etc/php/8.2/fpm/php.ini && \
-    sed -i "s/listen = \/run\/php\/php8.2-fpm.sock/listen = 9000/g" /etc/php/8.2/fpm/pool.d/www.conf && \
-    sed -i 's/;listen.mode = 0660/listen.mode = 0660/g' /etc/php/8.2/fpm/pool.d/www.conf && \
-    sed -i 's/;daemonize = yes/daemonize = no/g' /etc/php/8.2/fpm/pool.d/www.conf
-
-RUN wget --no-check-certificate https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && \
-    chmod +x wp-cli.phar && \
-    mv wp-cli.phar /usr/local/bin/wp
-
-RUN mkdir -p /run/php/ && \
-    mkdir -p /var/run/php/ && \
-    mkdir -p /var/www/html/
-
-RUN chown -R www-data:www-data /var/www/html/
-
-COPY conf/wp-config.php /tmp/
-
-COPY tools/wp_setup.sh /bin/
-RUN chmod +x /bin/wp_setup.sh
-
-CMD ["wp_setup.sh", "php-fpm8.2", "--nodaemonize"]
+ENTRYPOINT ["wp_setup.sh"]
+CMD ["php-fpm8.2", "-F"]

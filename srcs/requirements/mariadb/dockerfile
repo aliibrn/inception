@@ -4,12 +4,14 @@ EXPOSE 3306
 
 RUN apt update && \
     apt install -y --no-install-recommends --no-install-suggests \
-    mariadb-server && rm -rf /var/lib/apt/lists/*
+    mariadb-server && \
+    rm -rf /var/lib/apt/lists/* && \
+    mkdir -p /var/run/mysqld && \
+    chown mysql:mysql /var/run/mysqld && \
+    mkdir -p /var/log/mysql && \
+    chown mysql:mysql /var/log/mysql
 
 COPY conf/50-server.cnf /etc/mysql/mariadb.conf.d/50-server.cnf
+COPY --chmod=755 tools/entrypoint.sh /usr/local/bin/entrypoint.sh
 
-COPY tools/setup.sh /bin/
-
-RUN chmod +x /bin/setup.sh
-
-CMD ["setup.sh","mysqld_safe"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

@@ -1,0 +1,32 @@
+# Adminer Container - Optimized
+FROM alpine:edge
+
+# Install only necessary PHP modules + wget
+RUN apk add --no-cache \
+    php \
+    php-fpm \
+    php-session \
+    php-json \
+    php-mbstring \
+    php-ctype \
+    php-openssl \
+    php-pdo_mysql \
+    wget \
+    && mkdir -p /var/www/html
+
+# Download Adminer (pinned version for reproducibility)
+WORKDIR /var/www/html
+RUN wget -O index.php https://github.com/vrana/adminer/releases/download/v4.8.1/adminer-4.8.1.php \
+    && chmod 644 index.php
+
+# Custom PHP config (tune limits for DB imports/exports)
+RUN mkdir -p /etc/php/conf.d && \
+    echo 'upload_max_filesize = 64M' > /etc/php/conf.d/custom.ini && \
+    echo 'post_max_size = 64M' >> /etc/php/conf.d/custom.ini && \
+    echo 'memory_limit = 128M' >> /etc/php/conf.d/custom.ini
+
+# Expose port 8080 (matches the CMD below)
+EXPOSE 8080
+
+# Run PHP’s built-in web server
+CMD ["php", "-S", "0.0.0.0:8080", "-t", "/var/www/html"]

@@ -5,7 +5,7 @@ EXPOSE 9000
 
 RUN apt-get update && \
     apt-get install -y \
-    php-fpm php-mysql \
+    php-fpm php-mysql php-redis \
     netcat-openbsd \
     curl && \
     apt-get clean && \

@@ -1,4 +1,15 @@
 services:
+  # -- -- -- -- BONUS -- -- -- --
+
+  # -- -- -- -- REDIS -- -- -- --
+  redis:
+    build: ./requirements/bonus/Redis
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - wp_network
   # -- -- -- -- MARIADB -- -- -- --
   mariadb:
     build: ./requirements/mariadb
@@ -21,6 +32,7 @@ services:
       - wp_site_data:/var/www/html
     depends_on:
       - mariadb
+      - redis
     networks:
       - wp_network
   # -- -- -- -- NGINX -- -- -- --

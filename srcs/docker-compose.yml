@@ -1,6 +1,23 @@
 services:
   # -- -- -- -- BONUS -- -- -- --
 
+  # -- -- -- -- cAdvisor -- -- -- --
+  
+  cadvisor:
+    container_name: cAdvisor
+    restart: on-failure
+    build:
+      context: ./requirements/bonus/cAdvisor/
+    ports:
+      - "8084:8084"
+    networks:
+      - wp_network
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+
   # -- -- -- -- adminer -- -- -- --
   adminer:
     build: ./requirements/bonus/adminer

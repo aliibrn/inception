@@ -1,0 +1,12 @@
+FROM alpine:edge
+
+RUN apk add --no-cache nginx
+
+COPY files/ /usr/share/nginx/html/
+COPY conf/default.conf /etc/nginx/http.d/default.conf
+
+RUN chown -R nginx:nginx /usr/share/nginx/html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

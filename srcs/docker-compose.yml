@@ -1,5 +1,13 @@
 services:
   # -- -- -- -- BONUS -- -- -- --
+  my_site:
+    build: ./requirements/bonus/my_site
+    container_name: my_site
+    restart: unless-stopped
+    volumes:
+      - /home/abbouram/Desktop/inception/srcs/requirements/bonus/my_site/files:/usr/share/nginx/html:ro
+    ports:
+      - "80:80"
 
   # -- -- -- -- cAdvisor -- -- -- --
   

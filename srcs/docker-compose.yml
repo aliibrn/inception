@@ -1,6 +1,22 @@
 services:
   # -- -- -- -- BONUS -- -- -- --
 
+  # -- -- -- -- FTP -- -- -- --
+  ftp:
+    build: ./requirements/bonus/ftp
+    container_name: ftp
+    restart: unless-stopped
+    environment:
+      FTP_USER: ftpuser
+      FTP_PASS: ftppassword
+    ports:
+      - "21:21"
+      - "30000-30010:30000-30010"
+    volumes:
+      - wp_site_data:/var/www/html
+    networks:
+      - wp_network
+
   # -- -- -- -- REDIS -- -- -- --
   redis:
     build: ./requirements/bonus/Redis
@@ -8,6 +24,8 @@ services:
     restart: unless-stopped
     ports:
       - "6379:6379"
+    volumes:
+      - wp_site_data:/var/www/html
     networks:
       - wp_network
   # -- -- -- -- MARIADB -- -- -- --

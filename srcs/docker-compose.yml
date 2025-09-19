@@ -46,7 +46,7 @@ services:
       FTP_PASS: ftppassword
     ports:
       - "21:21"
-      - "30000-30010:30000-30010"
+      - "21100-21110:21100-21110"
     volumes:
       - wp_site_data:/var/www/html
     networks:
@@ -54,7 +54,7 @@ services:
 
   # -- -- -- -- REDIS -- -- -- --
   redis:
-    build: ./requirements/bonus/Redis
+    build: ./requirements/bonus/redis
     container_name: redis
     restart: unless-stopped
     ports:

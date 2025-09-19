@@ -1,18 +1,16 @@
-#!/bin/bash
+#!/bin/sh
+
 set -e
 
-mkdir -p /var/run/vsftpd/empty
+echo "Starting script ..." 
 
-if ! id "$FTP_USER" >/dev/null 2>&1; then
-    useradd -m "$FTP_USER"
-    echo "$FTP_USER:$FTP_PASS" | chpasswd
-fi
+adduser -D -h /ftp ${FTP_USER}
+echo "user creds : ${FTP_USER}:${FTP_PASS}" 
+echo "${FTP_USER}:${FTP_PASS}" | chpasswd
 
-chown -R "$FTP_USER:$FTP_USER" /var/www/html
+chmod 777 /ftp
+chown -R ${FTP_USER}:${FTP_USER} /ftp
 
-if [ ! -L "/home/$FTP_USER/wordpress" ]; then
-    ln -s /var/www/html "/home/$FTP_USER/wordpress"
-fi
+echo "Starting FTP server ..."
 
-exec vsftpd /etc/vsftpd.conf
-
+vsftpd /etc/vsftpd/vsftpd.conf

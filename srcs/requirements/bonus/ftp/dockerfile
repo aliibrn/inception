@@ -1,14 +1,12 @@
-FROM debian:bookworm
+FROM alpine:3.20
 
-RUN apt-get update && apt-get install -y \
-    vsftpd ftp \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk update && apk add --no-cache vsftpd lftp
 
-COPY conf/vsftpd.conf /etc/vsftpd.conf
+COPY conf/vsftpd.conf /etc/vsftpd/vsftpd.conf
+COPY tools/script.sh /script.sh
 
-COPY tools/script.sh /usr/local/bin/script.sh
-RUN chmod +x /usr/local/bin/script.sh
+RUN chmod +x /script.sh
 
-EXPOSE 21
+EXPOSE 21 21100-21110
 
-CMD ["script.sh"]
+ENTRYPOINT ["/script.sh"]
